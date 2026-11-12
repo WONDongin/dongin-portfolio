@@ -1,0 +1,27 @@
+# 의존성
+node_modules/
+
+# 빌드 결과 및 생성된 미리보기
+dist/
+portfolio-preview.html
+
+# 배포·작업 도구
+.vercel/
+.taste-skill/inspect/
+
+# 환경변수
+.env
+.env.*
+!.env.example
+
+# 로그
+*.log
+
+# 운영체제 임시 파일
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# 개인 IDE 설정
+.idea/
+.vscode/

@@ -1,0 +1,7 @@
+S-Core Dream / 에스코어 드림
+Copyright: S-Core (에스코어)
+Official font information and license: https://www.s-core.co.kr/company/font/
+Files: S-CoreDream-3Light.woff, S-CoreDream-4Regular.woff
+Distribution source: https://github.com/projectnoonnu/noonfonts_six
+The font is supplied without modification for this portfolio's web typography.
+Refer to the official license for permitted use and redistribution conditions.
