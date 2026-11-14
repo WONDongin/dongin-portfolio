@@ -51,6 +51,7 @@ const projects = [
       "자취생의 메뉴 고민을 줄이는 레시피 탐색 앱입니다. 조건에 맞는 메뉴를 찾고, 레시피를 확인하고, 마음에 드는 메뉴를 저장합니다.",
     role: "회원 인증·개인 기록 API · 관리자 기능 · Flutter 화면·API 연동 · 테스트·CI",
     repo: "https://github.com/WONDongin/zipbob_app",
+    liveUrl: "https://zipbob-web.vercel.app",
     flow: ["조건 선택", "메뉴 추천", "레시피 확인", "즐겨찾기"],
     technical: [
       [
@@ -253,7 +254,9 @@ function ProjectCards({ project: p }) {
         </h5>
         <div>
           <h6>{p.name}</h6>
-          <span className="deploy-status">배포 준비 중</span>
+          <span className="deploy-status">
+            {p.liveUrl ? "서비스 운영 중" : "배포 준비 중"}
+          </span>
         </div>
         <div className="destination-actions">
           {p.liveUrl ? (
