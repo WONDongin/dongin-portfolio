@@ -20,6 +20,7 @@ const projects = [
       "상담 신청부터 담당자 배정, 상담 기록과 수강 전환까지. 관리자와 상담사가 하나의 고객 흐름을 이어가는 웹 애플리케이션입니다.",
     role: "관리자 기능 · 인증·권한 · 조회 개선 · CI · 화면 리디자인",
     repo: "https://github.com/WONDongin/project-crm",
+    videoUrl: "", // 유튜브 시연 영상 URL을 입력하세요.
     flow: ["상담 신청", "담당자 배정", "상담 기록", "수강 전환"],
     technical: [
       [
@@ -51,6 +52,7 @@ const projects = [
       "자취생의 메뉴 고민을 줄이는 레시피 탐색 앱입니다. 조건에 맞는 메뉴를 찾고, 레시피를 확인하고, 마음에 드는 메뉴를 저장합니다.",
     role: "회원 인증·개인 기록 API · 관리자 기능 · Flutter 화면·API 연동 · 테스트·CI",
     repo: "https://github.com/WONDongin/zipbob_app",
+    videoUrl: "", // 유튜브 시연 영상 URL을 입력하세요.
     liveUrl: "https://zipbob-web.vercel.app",
     flow: ["조건 선택", "메뉴 추천", "레시피 확인", "즐겨찾기"],
     technical: [
@@ -80,6 +82,7 @@ const projects = [
       "정책 탐색과 지역 커뮤니티, 멘토링을 연결하는 웹 플랫폼입니다. 멘토 관리와 운영 자동화, 관리자 기능 및 인증을 담당했습니다.",
     role: "멘토 관리·자동 승급 · 관리자 운영 · OAuth2·JWT 인증",
     repo: "https://github.com/WONDongin/project-jibangyoung-groupware",
+    videoUrl: "https://youtu.be/9anicZNei0s?si=rW8naLL1Td8l-qot",
     flow: ["멘토 신청", "관리자 승인", "활동 누적", "자동 승급"],
     technical: [
       [
@@ -255,14 +258,28 @@ function ProjectCards({ project: p }) {
         <div>
           <h6>{p.name}</h6>
           <span className="deploy-status">
-            {p.liveUrl ? "서비스 운영 중" : "배포 준비 중"}
+            {p.id === "zipbob" ? (
+              <>
+                서비스 운영 중
+                <br />
+                프론트 Vercel · 백엔드 Render · DB Neon · 메일 Brevo
+              </>
+            ) : (
+              "유튜브를 통해 주요 기능 시연 영상을 확인하세요."
+            )}
           </span>
         </div>
         <div className="destination-actions">
-          {p.liveUrl ? (
+          {p.id !== "zipbob" &&
+            (p.videoUrl ? (
+              <ExternalLink href={p.videoUrl}>시연 영상 ↗</ExternalLink>
+            ) : (
+              <button type="button" disabled title="시연 영상 준비 중">
+                시연 영상 ↗
+              </button>
+            ))}
+          {p.id === "zipbob" && p.liveUrl && (
             <ExternalLink href={p.liveUrl}>라이브 서비스 ↗</ExternalLink>
-          ) : (
-            <button disabled>라이브 서비스 ↗</button>
           )}
           <ExternalLink href={p.repo}>GitHub ↗</ExternalLink>
         </div>
@@ -622,6 +639,17 @@ function App() {
                   <small>BLOG & LEARNING</small>
                   <h3>Coding Dongin</h3>
                   <p>개발하며 마주한 문제와 해결 기록</p>
+                </div>
+                <span aria-hidden="true">↗</span>
+              </ExternalLink>
+              <ExternalLink
+                href="https://www.youtube.com/@Dongin_Dev"
+                className="destination reveal"
+              >
+                <div>
+                  <small>VIDEOS & DEMOS</small>
+                  <h3>Dongin Dev</h3>
+                  <p>직접 만든 프로젝트의 주요 기능 시연</p>
                 </div>
                 <span aria-hidden="true">↗</span>
               </ExternalLink>
