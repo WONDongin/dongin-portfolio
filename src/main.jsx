@@ -11,6 +11,28 @@ import { SignatureIntro, SkillDeck, ProjectStory } from "./ScrollStories";
 gsap.registerPlugin(ScrollTrigger);
 const projects = [
   {
+    id: "shortsflow",
+    name: "ShortsFlow AI",
+    category: "쇼츠 제작 자동화",
+    stack: "Python · FastAPI · React · PostgreSQL · n8n · FFmpeg · Whisper",
+    repo: "https://github.com/WONDongin/shortsflow-ai",
+    videoUrl: "https://www.youtube.com/watch?v=35-FUJ5Qymc",
+    technical: [
+      [
+        "영상 UUID로 작업과 결과물 연결",
+        "영상 메타데이터, 처리 상태, 결과 경로는 PostgreSQL에 저장하고 원본과 생성 파일은 로컬에서 관리합니다. 영상 UUID로 기존 작업과 결과를 다시 조회할 수 있습니다.",
+      ],
+      [
+        "자막 시간을 기준으로 쇼츠 구간 편집",
+        "Whisper로 음성을 전사하고, Mock 또는 GPT로 선택한 구간을 서버에서 검증합니다. FFmpeg로 구간을 자르고 클립 시작 시점에 맞춰 자막을 합성합니다.",
+      ],
+      [
+        "n8n으로 영상 처리 순서 자동화",
+        "웹훅으로 작업을 시작하고 음성 추출, 전사, 구간 분석, 렌더링을 순서대로 호출합니다. 화면에서 진행 상태와 완료·후보 없음·실패 결과를 확인할 수 있습니다.",
+      ],
+    ],
+  },
+  {
     id: "crm",
     name: "DIHS CRM",
     category: "교육 상담 고객 관리",
@@ -144,6 +166,12 @@ function ImageViewer({ image, onClose }) {
   );
 }
 const roleItems = {
+  shortsflow: [
+    ["데이터 설계", "PostgreSQL 테이블 설계 · 영상 UUID 기반 작업·결과 조회"],
+    ["영상 처리 API", "FastAPI · FFmpeg 음성·프레임 추출 및 쇼츠 렌더링"],
+    ["편집 워크플로우", "n8n 웹훅 · Whisper 전사 · 쇼츠 구간 분석"],
+    ["웹 화면·API 연동", "React 업로드 · 진행 상태 표시 · 결과물 다운로드"],
+  ],
   crm: [
     ["관리자 기능", "사용자 관리 · 담당자 배정 · 대시보드"],
     ["인증·권한", "JWT · HttpOnly Cookie · 역할 검증"],
@@ -182,6 +210,335 @@ function RoleIcon({ index }) {
     </svg>
   );
 }
+const shortsFlowScenes = [
+  {
+    title: "영상 업로드",
+    heading: "MP4를 올리면\n자동 편집이 시작됩니다.",
+    description:
+      "영상 길이와 해상도를 확인하고, 발급한 영상 UUID로 편집 작업을 시작합니다.",
+    stack: "React · FastAPI · FFprobe",
+  },
+  {
+    title: "자막·구간 분석",
+    heading: "음성에서 자막을 만들고\n쇼츠 구간을 찾습니다.",
+    description:
+      "Whisper가 음성을 전사하고, 시작·종료 시각이 있는 연속 자막을 바탕으로 편집 후보를 고릅니다.",
+    stack: "n8n · Whisper · Mock/GPT",
+  },
+  {
+    title: "결과 다운로드",
+    heading: "선택한 구간을\n자막이 들어간 쇼츠로.",
+    description:
+      "원본 음성과 자막이 포함된 쇼츠를 렌더링하고, 편집 영상과 썸네일을 다운로드할 수 있게 했습니다.",
+    stack: "FFmpeg · MP4 · JPG",
+  },
+];
+
+const shortsFlowPreviewStyles = `
+  .story-shortsflow { background: #131025; }
+  .story-shortsflow .shortsflow-preview {
+    container-type: inline-size;
+    background: radial-gradient(ellipse at 81% 23%, #241837, #0d0c14 63%);
+    border: 1px solid #393044;
+    border-radius: 14px;
+    box-shadow: 0 24px 55px #0007;
+    color: #f7f2ff;
+    overflow: hidden;
+    font-size: 12px;
+  }
+  .shortsflow-preview__bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid #33293e;
+    padding: 10px 5%;
+  }
+  .shortsflow-preview__bar strong { font-size: clamp(11px, 2.5cqw, 19px); }
+  .shortsflow-preview__bar span,
+  .shortsflow-preview__hero span,
+  .shortsflow-preview__hero em { color: #c8abff; }
+  .shortsflow-preview__bar small { color: #c6b8d6; white-space: nowrap; }
+  .shortsflow-preview__bar small i {
+    background: #a3dfc2;
+    border-radius: 50%;
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-right: 5px;
+  }
+  .shortsflow-preview__body { padding: 4% 5%; }
+  .shortsflow-preview__hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    align-items: center;
+    gap: 5%;
+    margin-bottom: 4%;
+  }
+  .shortsflow-preview__hero strong {
+    display: block;
+    font-size: clamp(17px, 5.8cqw, 45px);
+    font-weight: 900;
+    line-height: 1.12;
+    margin: 6px 0;
+    letter-spacing: -.06em;
+  }
+  .shortsflow-preview__hero em { font-style: normal; }
+  .shortsflow-preview__hero p,
+  .shortsflow-preview__card p,
+  .shortsflow-preview__result p {
+    color: #c4b8d3;
+    font-size: clamp(9px, 1.8cqw, 13px);
+    line-height: 1.45;
+    margin: 4px 0 0;
+  }
+  .shortsflow-preview__visual {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5%;
+    border: 1px solid #75549a80;
+    border-radius: 50%;
+    padding: 11% 2%;
+    transform: rotate(-8deg);
+  }
+  .shortsflow-preview__visual b {
+    border: 1px solid #8c6cb5;
+    border-radius: 8px;
+    background: #21182f;
+    color: #e6d4ff;
+    padding: 8% 5%;
+    font-size: clamp(8px, 1.6cqw, 12px);
+    white-space: nowrap;
+  }
+  .shortsflow-preview__visual b:last-child { transform: rotate(16deg); }
+  .shortsflow-preview__cards {
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+    gap: 2.5%;
+  }
+  .shortsflow-preview__card {
+    padding: 9px;
+    border: 1px solid #493959;
+    border-radius: 9px;
+    background: #191522;
+    min-width: 0;
+  }
+  .shortsflow-preview__card strong,
+  .shortsflow-preview__result strong { font-size: clamp(10px, 2.05cqw, 15px); }
+  .shortsflow-preview__field,
+  .shortsflow-preview__action {
+    display: block;
+    padding: 6px 8px;
+    margin-top: 6px;
+    border: 1px solid #4c3a61;
+    border-radius: 5px;
+    font-size: clamp(9px, 1.75cqw, 12px);
+  }
+  .shortsflow-preview__field { color: #e3d4f4; background: #120f1c; }
+  .shortsflow-preview__card:first-child .shortsflow-preview__field { border-style: dashed; }
+  .shortsflow-preview__action {
+    background: #c5a7ff;
+    color: #1d112e;
+    text-align: center;
+    font-weight: 700;
+  }
+  .shortsflow-preview__result { border-top: 1px solid #493959; margin-top: 10px; padding-top: 8px; }
+  .story-shortsflow .example-label { bottom: 12px; }
+  @container (max-width: 400px) {
+    .shortsflow-preview__hero p,
+    .shortsflow-preview__card p { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .story-shortsflow .device-stage { min-height: 0; padding-block: 12px 30px; }
+  }
+`;
+
+const shortsFlowPreviewSteps = [
+  [
+    "MP4 파일 선택",
+    "업로드 및 자동 편집",
+    "영상 UUID 입력",
+    "영상을 업로드하거나 기존 작업을 조회하면 결과물이 표시됩니다.",
+  ],
+  [
+    "음성 추출 · 자막 생성",
+    "쇼츠 후보 구간 분석 중",
+    "시작·종료 시각 확인",
+    "00:05–00:08 · 자막 타임스탬프 예시",
+  ],
+  [
+    "shorts.mp4 · thumbnail.jpg",
+    "편집 영상 다운로드",
+    "이전 작업 조회 가능",
+    "편집 MP4와 썸네일 JPG 생성 완료",
+  ],
+];
+
+function ShortsFlowPreview({ step }) {
+  const [file, action, lookup, result] = shortsFlowPreviewSteps[step];
+
+  return (
+    <div className="shortsflow-preview" aria-label="ShortsFlow AI 화면 예시">
+      <div className="shortsflow-preview__bar">
+        <strong>
+          ▣ ShortsFlow <span>AI</span>
+        </strong>
+        <small>
+          <i aria-hidden="true" />
+          백엔드 연결 정상
+        </small>
+      </div>
+      <div className="shortsflow-preview__body">
+        <div className="shortsflow-preview__hero">
+          <div>
+            <span>✧ 자동 쇼츠 편집</span>
+            <strong>
+              긴 영상의 순간을
+              <br />
+              <em>쇼츠로.</em>
+            </strong>
+            <p>MP4를 올리면 쇼츠 구간을 찾아 자막을 합성합니다.</p>
+          </div>
+          <div className="shortsflow-preview__visual" aria-hidden="true">
+            <b>▣ 원본 영상</b>
+            <span>→</span>
+            <b>▷ 편집된 쇼츠</b>
+          </div>
+        </div>
+        <div className="shortsflow-preview__cards">
+          <div className="shortsflow-preview__card">
+            <strong>↑ 영상 업로드</strong>
+            <span className="shortsflow-preview__field">{file}</span>
+            <span className="shortsflow-preview__action">{action}</span>
+          </div>
+          <div className="shortsflow-preview__card">
+            <strong>⌕ 기존 작업 조회</strong>
+            <p>영상 UUID로 이전 작업과 결과를 확인합니다.</p>
+            <span className="shortsflow-preview__field">{lookup}</span>
+          </div>
+        </div>
+        <div className="shortsflow-preview__result">
+          <strong>↓ 결과물</strong>
+          <p>{result}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ShortsFlowStory() {
+  const story = useRef(null);
+  const sticky = useRef(null);
+  const [step, setStep] = useState(0);
+  const scene = shortsFlowScenes[step];
+  const [firstLine, secondLine] = scene.heading.split("\n");
+
+  useEffect(() => {
+    const section = story.current;
+    const panel = sticky.current;
+    const motion = matchMedia("(prefers-reduced-motion: reduce)");
+    let frame = null;
+
+    function updateStep() {
+      frame = null;
+      if (motion.matches) return;
+      const distance = section.offsetHeight - panel.offsetHeight;
+      if (distance <= 0) return;
+      const progress = -section.getBoundingClientRect().top / distance;
+      const index = Math.floor(progress * shortsFlowScenes.length);
+      setStep(Math.max(0, Math.min(shortsFlowScenes.length - 1, index)));
+    }
+
+    function queueUpdate() {
+      if (frame === null) frame = requestAnimationFrame(updateStep);
+    }
+
+    window.addEventListener("scroll", queueUpdate, { passive: true });
+    window.addEventListener("resize", queueUpdate);
+    motion.addEventListener("change", queueUpdate);
+    const observer = new ResizeObserver(queueUpdate);
+    observer.observe(document.body);
+    queueUpdate();
+    return () => {
+      if (frame !== null) cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", queueUpdate);
+      window.removeEventListener("resize", queueUpdate);
+      motion.removeEventListener("change", queueUpdate);
+      observer.disconnect();
+    };
+  }, []);
+
+  function selectStep(index) {
+    setStep(index);
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const section = story.current;
+    const distance = section.offsetHeight - sticky.current.offsetHeight;
+    if (distance <= 0) return;
+    window.scrollTo({
+      top:
+        window.scrollY +
+        section.getBoundingClientRect().top +
+        (distance * (index + 0.5)) / shortsFlowScenes.length,
+      behavior: "instant",
+    });
+  }
+
+  return (
+    <section
+      ref={story}
+      className="project-story story-shortsflow"
+      aria-label="ShortsFlow AI 사용 흐름"
+    >
+      <style>{shortsFlowPreviewStyles}</style>
+      <div ref={sticky} className="story-sticky frame">
+        <div className="story-copy">
+          <span className="story-kicker">
+            0{step + 1} / {scene.title}
+          </span>
+          <h4>
+            {firstLine}
+            <br />
+            {secondLine}
+          </h4>
+          <p>{scene.description}</p>
+          <div className="story-tech">{scene.stack}</div>
+          <div
+            className="story-controls"
+            role="group"
+            aria-label="시연 단계 선택"
+          >
+            {shortsFlowScenes.map(({ title }, index) => (
+              <button
+                key={title}
+                type="button"
+                onClick={() => selectStep(index)}
+                aria-pressed={step === index}
+              >
+                <span>0{index + 1}</span>
+                {title}
+                <i />
+              </button>
+            ))}
+          </div>
+          <small className="scroll-hint">스크롤로 다음 단계 보기 ↓</small>
+        </div>
+        <div className="device-stage">
+          <span className="stage-word" aria-hidden="true">
+            EDIT.
+          </span>
+          <div className={"device-tilt step-" + step}>
+            <ShortsFlowPreview step={step} />
+          </div>
+          <span className="example-label">
+            기능 흐름을 설명하기 위한 예시 UI · 샘플 데이터
+          </span>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function ProjectCards({ project: p }) {
   const ref = useRef(null);
   useEffect(() => {
@@ -212,7 +569,9 @@ function ProjectCards({ project: p }) {
       <header className="airy-heading">
         <h4>직접 만든 부분들</h4>
         <span>
-          {p.name} / {p.id === "youth" ? "4" : "2"}인 협업
+          {p.name}
+          {p.id !== "shortsflow" &&
+            (p.id === "youth" ? " / 4인 협업" : " / 2인 협업")}
         </span>
       </header>
       <div className="airy-row">
@@ -575,7 +934,11 @@ function App() {
                     <span className="sr-only">{p.name} GitHub 새 창</span>
                   </ExternalLink>
                 </div>
-                <ProjectStory project={p} />
+                {p.id === "shortsflow" ? (
+                  <ShortsFlowStory />
+                ) : (
+                  <ProjectStory project={p} />
+                )}
                 <ProjectCards project={p} onImage={setImage} />
               </article>
             );
